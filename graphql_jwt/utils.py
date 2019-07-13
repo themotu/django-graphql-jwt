@@ -101,14 +101,20 @@ def get_user_by_natural_key(username):
 
 
 def get_user_by_payload(payload):
-    username = jwt_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER(payload)
+    # username = jwt_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER(payload)
 
-    if not username:
+    try:
+        id = payload['id']
+    except:
         raise exceptions.JSONWebTokenError(_('Invalid payload'))
 
-    user = jwt_settings.JWT_GET_USER_BY_NATURAL_KEY_HANDLER(username)
+    try:
+        user = get_user_model().objects.get(pk=id)
+    except:
+        raise exceptions.JSONWebTokenError(
+            _('You dun have perms for this dude'))
 
-    if user is not None and not user.is_active:
+    if not user.is_active:
         raise exceptions.JSONWebTokenError(_('User is disabled'))
     return user
 
